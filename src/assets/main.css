@@ -19,8 +19,10 @@
   --green: #30d158;
   --blue: #0a84ff;
   --purple: #bf5af2;
-  --font: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font: 'Space Grotesk', 'DM Sans', system-ui, -apple-system, sans-serif;
   --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  --teal: #00f0ff;
+  --teal-dim: rgba(0, 240, 255, 0.12);
 }
 
 html, body {

@@ -2,19 +2,24 @@
 import { ref } from 'vue'
 import type { Area, TimeFilter, CrimeCategory } from '@/data/types'
 import { areas } from '@/data/areas'
+import { newsItems } from '@/data/news'
+import { policeStations } from '@/data/policeStations'
 import LeafletMap from '@/components/LeafletMap.vue'
 import TopBar from '@/components/TopBar.vue'
-import FilterBar from '@/components/FilterBar.vue'
+import LeftPanel from '@/components/LeftPanel.vue'
+import RightPanel from '@/components/RightPanel.vue'
 import AreaDetailPanel from '@/components/AreaDetailPanel.vue'
 import MapLegend from '@/components/MapLegend.vue'
 import SOSButton from '@/components/SOSButton.vue'
 import SOSModal from '@/components/SOSModal.vue'
+import NewsTicker from '@/components/NewsTicker.vue'
 
 const selectedArea = ref<Area | null>(null)
 const timeFilter = ref<TimeFilter>('all')
 const crimeFilter = ref<CrimeCategory>('all')
 const showPanel = ref(false)
 const showSOS = ref(false)
+const showPoliceStations = ref(true)
 const mapRef = ref<InstanceType<typeof LeafletMap> | null>(null)
 
 function onAreaClick(area: Area) {
@@ -30,23 +35,24 @@ function closePanel() {
 
 <template>
   <div class="dashboard">
+    <LeftPanel :areas="areas" :police-stations="policeStations" />
     <LeafletMap
       ref="mapRef"
       :areas="areas"
       :time-filter="timeFilter"
       :crime-filter="crimeFilter"
+      :show-police-stations="showPoliceStations"
       @area-click="onAreaClick"
     />
     <TopBar
       :areas="areas"
       :time-filter="timeFilter"
+      :crime-filter="crimeFilter"
       @update:time-filter="timeFilter = $event"
+      @update:crime-filter="crimeFilter = $event"
       @area-select="onAreaClick"
     />
-    <FilterBar
-      :crime-filter="crimeFilter"
-      @update:crime-filter="crimeFilter = $event"
-    />
+    <RightPanel :news-items="newsItems" />
     <AreaDetailPanel
       v-if="selectedArea"
       :area="selectedArea"
@@ -56,9 +62,7 @@ function closePanel() {
     <MapLegend />
     <SOSButton @click="showSOS = true" />
     <SOSModal :show="showSOS" @close="showSOS = false" />
-    <div class="disclaimer">
-      Data sourced from NCRB reports and Delhi Police public records. For awareness purposes only. Does not replace emergency services.
-    </div>
+    <NewsTicker :news-items="newsItems" />
   </div>
 </template>
 
@@ -67,21 +71,5 @@ function closePanel() {
   position: relative;
   height: 100vh;
   overflow: hidden;
-}
-.disclaimer {
-  position: fixed;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: var(--text3);
-  font-size: 10px;
-  letter-spacing: 0.3px;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 10;
-  opacity: 0.7;
-}
-@media (max-width: 768px) {
-  .disclaimer { display: none; }
 }
 </style>
