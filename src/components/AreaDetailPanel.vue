@@ -11,6 +11,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
+  'spot-click': [lat: number, lng: number]
 }>()
 
 const riskFillWidth = ref(0)
@@ -182,7 +183,12 @@ watch(
           <div class="section">
             <h3 class="section-title">NEARBY SAFE SPOTS</h3>
             <div class="spots-list">
-              <div v-for="spot in nearbySafeSpots" :key="spot.name" class="spot-row">
+              <div
+                v-for="spot in nearbySafeSpots"
+                :key="spot.name"
+                class="spot-row spot-row--clickable"
+                @click="emit('spot-click', spot.lat, spot.lng)"
+              >
                 <div class="spot-icon" :style="{ borderColor: spotIcons[spot.type]?.color, color: spotIcons[spot.type]?.color }">
                   {{ spotIcons[spot.type]?.letter }}
                 </div>
@@ -190,7 +196,16 @@ watch(
                   <span class="spot-name">{{ spot.name }}</span>
                   <span class="spot-type">{{ spot.type.replace('_', ' ') }}</span>
                 </div>
-                <span class="spot-dist">{{ formatDistance(spot.distance) }}</span>
+                <div class="spot-actions">
+                  <span class="spot-dist">{{ formatDistance(spot.distance) }}</span>
+                  <a
+                    :href="`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}`"
+                    target="_blank"
+                    rel="noopener"
+                    class="spot-dir"
+                    @click.stop
+                  >Directions</a>
+                </div>
               </div>
             </div>
           </div>
@@ -532,11 +547,33 @@ watch(
   text-transform: capitalize;
 }
 
+.spot-row--clickable {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.spot-row--clickable:hover {
+  background: rgba(255,255,255,0.04);
+}
+.spot-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
 .spot-dist {
   font-size: 11px;
   color: var(--text2);
   font-weight: 500;
-  flex-shrink: 0;
+}
+.spot-dir {
+  font-size: 9px;
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+.spot-dir:hover {
+  text-decoration: underline;
 }
 
 /* Emergency Button */

@@ -18,8 +18,20 @@ const emit = defineEmits<{
 const searchQuery = ref('')
 const searchFocused = ref(false)
 const activeCity = ref('DELHI')
+const showCityToast = ref(false)
+const toastCity = ref('')
 
 const cities = ['DELHI', 'MUMBAI', 'BANGALORE', 'KOLKATA', 'CHENNAI', 'HYDERABAD']
+
+function selectCity(city: string) {
+  if (city !== 'DELHI') {
+    toastCity.value = city
+    showCityToast.value = true
+    setTimeout(() => { showCityToast.value = false }, 2500)
+  } else {
+    activeCity.value = city
+  }
+}
 
 const timeFilters: { label: string; value: TimeFilter }[] = [
   { label: 'All hours', value: 'all' },
@@ -79,7 +91,7 @@ function onBlur() {
           :key="city"
           class="city-tab"
           :class="{ active: activeCity === city }"
-          @click="activeCity = city"
+          @click="selectCity(city)"
         >{{ city }}</button>
       </div>
 
@@ -119,6 +131,12 @@ function onBlur() {
         <button v-for="cf in crimeFilters" :key="cf.value" class="chip" :class="{ active: crimeFilter === cf.value }" @click="emit('update:crimeFilter', cf.value)">{{ cf.label }}</button>
       </div>
     </div>
+
+    <Transition name="toast">
+      <div v-if="showCityToast" class="city-toast">
+        {{ toastCity }} data coming soon. Currently showing Delhi.
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -163,6 +181,27 @@ function onBlur() {
 .chip { padding: 3px 8px; border-radius: 4px; font-family: var(--mono); font-size: 9px; font-weight: 600; letter-spacing: 0.4px; cursor: pointer; border: 1px solid var(--border); color: var(--text3); background: transparent; transition: all 0.2s; white-space: nowrap; }
 .chip:hover { border-color: var(--border2); color: var(--text2); }
 .chip.active { color: var(--text); border-color: var(--border2); background: rgba(255,255,255,0.06); }
+
+.city-toast {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  padding: 8px 16px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  white-space: nowrap;
+  z-index: 300;
+  pointer-events: none;
+}
+.toast-enter-active { transition: opacity 0.2s, transform 0.2s; }
+.toast-leave-active { transition: opacity 0.3s, transform 0.3s; }
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateX(-50%) translateY(-4px); }
 
 @media (max-width: 1200px) { .topbar { right: 0; } }
 @media (max-width: 1024px) { .topbar { left: 0; } .city-tabs { display: none; } }

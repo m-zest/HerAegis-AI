@@ -143,6 +143,7 @@ function addSafeSpots() {
       `<div style="font-family:'Space Grotesk',sans-serif">` +
       `<div style="font-weight:700;font-size:13px">${spot.name}</div>` +
       `<div style="font-size:11px;color:#8a8aa4;text-transform:capitalize">${spot.type.replace('_', ' ')}</div>` +
+      `<a href="https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;font-size:11px;color:#0a84ff;text-decoration:none;font-weight:600">Get Directions &rarr;</a>` +
       `</div>`
     )
     markers.push(marker)
@@ -202,6 +203,7 @@ function addPoliceStations() {
       `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#0a84ff;margin-top:4px">${ps.phone}</div>` +
       `<div style="font-size:10px;color:#8a8aa4;margin-top:2px">${ps.officers} officers &middot; Avg response: ${ps.responseTime}</div>` +
       (isAlert ? `<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#ff2d55;margin-top:4px">HIGH ALERT</div>` : '') +
+      `<a href="https://www.google.com/maps/dir/?api=1&destination=${ps.lat},${ps.lng}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;font-size:11px;color:#0a84ff;text-decoration:none;font-weight:600">Get Directions &rarr;</a>` +
       `</div>`
     )
     psMarkers.push(marker)
@@ -209,8 +211,22 @@ function addPoliceStations() {
   policeLayerGroup = L.layerGroup(psMarkers).addTo(map)
 }
 
-// Filtered heatmap generation
+// Seeded PRNG for consistent filter results
+function seededRandom(seed: number) {
+  let s = seed
+  return () => {
+    s = (s * 16807 + 0) % 2147483647
+    return (s - 1) / 2147483646
+  }
+}
+
 function generateFilteredHeatPoints(areas: Area[], timeFilter: TimeFilter, crimeFilter: CrimeCategory): [number, number, number][] {
+  // Create seed from filter combo so same filters = same map
+  const seedStr = timeFilter + crimeFilter
+  let seedNum = 0
+  for (let i = 0; i < seedStr.length; i++) seedNum = seedNum * 31 + seedStr.charCodeAt(i)
+  const rand = seededRandom(Math.abs(seedNum) + 1)
+
   const pts: [number, number, number][] = []
 
   areas.forEach(a => {
@@ -238,11 +254,11 @@ function generateFilteredHeatPoints(areas: Area[], timeFilter: TimeFilter, crime
     const spread = a.risk > 70 ? 0.015 : a.risk > 40 ? 0.012 : 0.008
 
     for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2
-      const r = Math.random() * spread
+      const angle = rand() * Math.PI * 2
+      const r = rand() * spread
       const lat = a.lat + Math.sin(angle) * r
       const lng = a.lng + Math.cos(angle) * r * (1 / Math.cos(a.lat * Math.PI / 180))
-      const intensity = Math.min(1, 0.3 + Math.random() * 0.7 * (a.risk / 100) * timeMul * crimeMul)
+      const intensity = Math.min(1, 0.3 + rand() * 0.7 * (a.risk / 100) * timeMul * crimeMul)
       pts.push([lat, lng, intensity])
     }
   })
@@ -256,10 +272,10 @@ function generateFilteredHeatPoints(areas: Area[], timeFilter: TimeFilter, crime
     ]
     corridors.forEach(c => {
       for (let i = 0; i < c.n; i++) {
-        const t = Math.random()
-        const lat = c.from[0]! + (c.to[0]! - c.from[0]!) * t + (Math.random() - 0.5) * 0.005
-        const lng = c.from[1]! + (c.to[1]! - c.from[1]!) * t + (Math.random() - 0.5) * 0.005
-        pts.push([lat, lng, 0.2 + Math.random() * 0.4])
+        const t = rand()
+        const lat = c.from[0]! + (c.to[0]! - c.from[0]!) * t + (rand() - 0.5) * 0.005
+        const lng = c.from[1]! + (c.to[1]! - c.from[1]!) * t + (rand() - 0.5) * 0.005
+        pts.push([lat, lng, 0.2 + rand() * 0.4])
       }
     })
   }
@@ -271,6 +287,10 @@ function flyToArea(area: Area) {
   if (map) map.flyTo([area.lat, area.lng], 14, { duration: 1 })
 }
 
+function flyToCoords(lat: number, lng: number, zoom = 16) {
+  if (map) map.flyTo([lat, lng], zoom, { duration: 1 })
+}
+
 watch(
   () => [props.timeFilter, props.crimeFilter],
   () => { rebuildLayers() }
@@ -278,7 +298,7 @@ watch(
 
 onMounted(() => { initMap() })
 onBeforeUnmount(() => { if (map) { map.remove(); map = null } })
-defineExpose({ flyToArea })
+defineExpose({ flyToArea, flyToCoords })
 </script>
 
 <template>
