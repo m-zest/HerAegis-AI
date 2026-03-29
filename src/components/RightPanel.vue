@@ -5,6 +5,10 @@ const props = defineProps<{
   newsItems: NewsItem[]
 }>()
 
+const emit = defineEmits<{
+  'location-click': [location: string]
+}>()
+
 const categoryColor: Record<string, string> = {
   CRIME: 'var(--red)',
   PROTEST: 'var(--orange)',
@@ -67,9 +71,14 @@ const metrics = [
           </span>
         </div>
         <div class="signal-card__title">{{ item.title }}</div>
-        <div v-if="item.location" class="signal-card__location">
+        <div
+          v-if="item.location"
+          class="signal-card__location signal-card__location--clickable"
+          @click.stop="emit('location-click', item.location!)"
+        >
           <span class="location-dot"></span>
           {{ item.location }}
+          <span class="location-arrow">&rarr;</span>
         </div>
       </div>
     </div>
@@ -282,6 +291,27 @@ const metrics = [
   border-radius: 50%;
   background: var(--text3);
   flex-shrink: 0;
+}
+
+.signal-card__location--clickable {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.signal-card__location--clickable:hover {
+  color: var(--blue);
+}
+
+.location-arrow {
+  font-size: 10px;
+  color: var(--blue);
+  margin-left: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.signal-card__location--clickable:hover .location-arrow {
+  opacity: 1;
 }
 
 /* Metrics */

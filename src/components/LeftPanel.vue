@@ -10,6 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'station-click': [station: PoliceStation]
+  'area-click': [area: Area]
 }>()
 
 // --- Computed stats ---
@@ -149,6 +150,15 @@ function riskBarColor(risk: number): string {
             >
               {{ station.responseTime }}
             </span>
+            <a
+              :href="`https://www.google.com/maps/dir/?api=1&destination=${station.lat},${station.lng}`"
+              target="_blank"
+              rel="noopener"
+              class="station-dir"
+              @click.stop
+            >
+              &rarr;
+            </a>
             <span
               v-if="station.status === 'high-alert'"
               class="alert-dot"
@@ -168,7 +178,8 @@ function riskBarColor(risk: number): string {
         <div
           v-for="area in topDangerousAreas"
           :key="area.id"
-          class="risk-row"
+          class="risk-row risk-row--clickable"
+          @click="emit('area-click', area)"
         >
           <span class="risk-name">{{ area.name }}</span>
           <div class="risk-bar-track">
@@ -422,6 +433,17 @@ function riskBarColor(risk: number): string {
   white-space: nowrap;
 }
 
+.station-dir {
+  font-size: 12px;
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.station-row:hover .station-dir {
+  opacity: 1;
+}
 .alert-dot {
   width: 6px;
   height: 6px;
@@ -466,6 +488,15 @@ function riskBarColor(risk: number): string {
   height: 100%;
   border-radius: 3px;
   transition: width 0.5s ease;
+}
+
+.risk-row--clickable {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.risk-row--clickable:hover {
+  background: rgba(255,255,255,0.03);
+  border-radius: 4px;
 }
 
 .risk-score {
