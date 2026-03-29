@@ -4,6 +4,7 @@ const levels = [
   { label: 'High', color: '#fd8d3c', glow: '' },
   { label: 'Moderate', color: '#e31a8c', glow: '' },
   { label: 'Low', color: '#7a0177', glow: '' },
+  { label: 'Riot Zone', color: '#ff9f0a', glow: '', dashed: true },
 ]
 </script>
 
@@ -19,8 +20,8 @@ const levels = [
 <style scoped>
 .map-legend {
   position: fixed;
-  bottom: 28px;
-  left: 16px;
+  bottom: 40px;
+  left: 296px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
